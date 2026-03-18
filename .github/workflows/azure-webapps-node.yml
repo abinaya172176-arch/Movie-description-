@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CineSpeak AI – Movie English Enhancement</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Exo+2:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--deep-navy:#020818;--navy:#040f2e;--mid-navy:#071540;--accent-blue:#1a4dcc;--bright-blue:#2d6fff;--cyan:#00d4ff;--gold:#f0b429;--white:#e8f0ff;--muted:#7a90c0;--card-bg:rgba(7,21,64,0.75);--glass:rgba(45,111,255,0.08);--border:rgba(45,111,255,0.25);--green:#4dff91;--red:#ff6060;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Exo 2',sans-serif;background:var(--deep-navy);color:var(--white);min-height:100vh;overflow-x:hidden;}
+#stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;opacity:.16;}
+.orb-1{width:500px;height:500px;background:var(--bright-blue);top:-150px;right:-100px;}
+.orb-2{width:400px;height:400px;background:var(--cyan);bottom:-100px;left:-100px;}
+.orb-3{width:350px;height:350px;background:#4a1dff;top:50%;left:50%;transform:translate(-50%,-50%);}
+.page{display:none;position:relative;z-index:1;min-height:100vh;}
+.page.active{display:block;}
+nav{position:sticky;top:0;z-index:100;background:rgba(2,8,24,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:64px;}
+.nav-brand{font-family:'Orbitron',sans-serif;font-size:1.3rem;font-weight:800;color:var(--cyan);letter-spacing:2px;cursor:pointer;text-shadow:0 0 20px rgba(0,212,255,.5);}
+.nav-brand span{color:var(--gold);}
+.nav-links{display:flex;gap:.2rem;list-style:none;}
+.nav-links a{font-family:'Exo 2',sans-serif;font-weight:500;font-size:.85rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-decoration:none;padding:.45rem 1rem;border-radius:4px;transition:all .25s;cursor:pointer;}
+.nav-links a:hover,.nav-links a.active{color:var(--cyan);background:rgba(0,212,255,.08);}
+.nav-cta{background:linear-gradient(135deg,var(--bright-blue),var(--cyan));color:var(--deep-navy)!important;font-weight:700!important;padding:.45rem 1.4rem!important;border-radius:20px!important;}
+.nav-cta:hover{opacity:.85;}
+.hero{min-height:calc(100vh - 64px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4rem 2rem;}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);border-radius:20px;padding:.35rem 1.1rem;font-size:.78rem;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);margin-bottom:2rem;animation:fadeDown .8s ease both;}
+.hero h1{font-family:'Orbitron',sans-serif;font-size:clamp(2.2rem,5vw,4.2rem);font-weight:900;line-height:1.1;letter-spacing:1px;margin-bottom:1.5rem;animation:fadeDown .9s ease both .1s;}
+.hero h1 .hl{background:linear-gradient(90deg,var(--cyan),var(--bright-blue),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero p{max-width:620px;color:var(--muted);font-size:1.1rem;font-weight:300;line-height:1.8;margin-bottom:2.5rem;animation:fadeDown 1s ease both .2s;}
+.hero-btns{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;animation:fadeDown 1.1s ease both .3s;}
+.btn-primary{background:linear-gradient(135deg,var(--bright-blue),var(--cyan));color:var(--deep-navy);font-family:'Orbitron',sans-serif;font-weight:700;font-size:.85rem;letter-spacing:1.5px;padding:.85rem 2.2rem;border-radius:30px;border:none;cursor:pointer;transition:all .3s;text-transform:uppercase;}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(0,212,255,.35);}
+.btn-secondary{background:transparent;color:var(--cyan);font-family:'Orbitron',sans-serif;font-weight:600;font-size:.85rem;letter-spacing:1.5px;padding:.85rem 2.2rem;border-radius:30px;border:1px solid rgba(0,212,255,.4);cursor:pointer;transition:all .3s;text-transform:uppercase;}
+.btn-secondary:hover{background:rgba(0,212,255,.08);transform:translateY(-3px);border-color:var(--cyan);}
+.section{padding:5rem 2rem;position:relative;z-index:1;}
+.section-header{text-align:center;margin-bottom:3.5rem;}
+.section-header .eyebrow{font-size:.75rem;letter-spacing:3px;text-transform:uppercase;color:var(--cyan);margin-bottom:.75rem;}
+.section-header h2{font-family:'Orbitron',sans-serif;font-size:clamp(1.6rem,3vw,2.4rem);font-weight:700;}
+.section-header p{color:var(--muted);margin-top:.75rem;font-size:1rem;max-width:500px;margin-left:auto;margin-right:auto;}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;max-width:1100px;margin:0 auto;}
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:2rem;backdrop-filter:blur(12px);transition:all .3s;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:0;transition:opacity .3s;}
+.card:hover{transform:translateY(-6px);border-color:rgba(0,212,255,.5);}
+.card:hover::before{opacity:1;}
+.card-icon{font-size:2.2rem;margin-bottom:1.2rem;display:block;}
+.card h3{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;margin-bottom:.75rem;letter-spacing:.5px;}
+.card p{color:var(--muted);font-size:.9rem;line-height:1.7;}
+.steps{max-width:900px;margin:0 auto;}
+.step{display:flex;gap:2rem;align-items:flex-start;margin-bottom:2rem;padding:1.8rem;background:var(--card-bg);border:1px solid var(--border);border-radius:14px;backdrop-filter:blur(12px);transition:all .3s;}
+.step:hover{border-color:rgba(0,212,255,.45);transform:translateX(6px);}
+.step-num{font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:900;color:var(--cyan);min-width:50px;text-shadow:0 0 20px rgba(0,212,255,.5);}
+.step-body h3{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;margin-bottom:.5rem;}
+.step-body p{color:var(--muted);font-size:.9rem;line-height:1.7;}
+.stats-strip{background:linear-gradient(135deg,rgba(7,21,64,.9),rgba(26,77,204,.2));border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:3rem 2rem;display:flex;justify-content:center;gap:4rem;flex-wrap:wrap;}
+.stat{text-align:center;}
+.stat-num{font-family:'Orbitron',sans-serif;font-size:2.2rem;font-weight:900;color:var(--cyan);text-shadow:0 0 25px rgba(0,212,255,.4);}
+.stat-label{font-size:.8rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:.3rem;}
+
+/* DEMO */
+.demo-layout{max-width:860px;margin:0 auto;padding:2.5rem 1.5rem 4rem;}
+.demo-title{font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:700;text-align:center;margin-bottom:.4rem;}
+.demo-desc{text-align:center;color:var(--muted);margin-bottom:2rem;font-size:.95rem;}
+.mode-tabs{display:flex;background:rgba(2,8,24,.6);border:1px solid var(--border);border-radius:40px;padding:4px;margin-bottom:1.8rem;max-width:320px;margin-left:auto;margin-right:auto;}
+.mode-tab{flex:1;padding:.6rem 1rem;border-radius:36px;border:none;background:transparent;color:var(--muted);font-family:'Exo 2',sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:.4rem;}
+.mode-tab.active{background:linear-gradient(135deg,var(--bright-blue),var(--cyan));color:var(--deep-navy);}
+.demo-panel{background:var(--card-bg);border:1px solid var(--border);border-radius:20px;padding:2rem;backdrop-filter:blur(16px);margin-bottom:1.5rem;}
+.demo-panel h3{font-family:'Orbitron',sans-serif;font-size:.82rem;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);margin-bottom:1.2rem;display:flex;align-items:center;gap:.6rem;}
+.voice-section{display:flex;flex-direction:column;align-items:center;}
+.mic-btn{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--bright-blue),var(--cyan));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:2rem;margin-bottom:1rem;transition:all .3s;box-shadow:0 0 30px rgba(0,212,255,.3);}
+.mic-btn:hover{transform:scale(1.08);box-shadow:0 0 50px rgba(0,212,255,.5);}
+.mic-btn.recording{animation:pulseRed 1.2s ease-in-out infinite;background:linear-gradient(135deg,#c0392b,#ff6060);}
+@keyframes pulseRed{0%{box-shadow:0 0 0 0 rgba(255,96,96,.6);}70%{box-shadow:0 0 0 22px rgba(255,96,96,0);}100%{box-shadow:0 0 0 0 rgba(255,96,96,0);}}
+.mic-status{color:var(--muted);font-size:.85rem;margin-bottom:1rem;text-align:center;min-height:1.4em;line-height:1.4;}
+.interim-box{width:100%;background:rgba(2,8,24,.5);border:1px dashed var(--border);border-radius:10px;padding:.8rem 1rem;min-height:44px;color:rgba(122,144,192,.7);font-family:'Exo 2',sans-serif;font-size:.88rem;line-height:1.6;font-style:italic;margin-bottom:.75rem;display:none;}
+.interim-box.show{display:block;}
+.transcript-output{width:100%;background:rgba(2,8,24,.55);border:1px solid var(--border);border-radius:12px;padding:1rem 1.2rem;min-height:80px;color:var(--white);font-family:'Exo 2',sans-serif;font-size:.96rem;line-height:1.7;}
+.transcript-output.empty{color:rgba(122,144,192,.45);font-style:italic;}
+.write-section{display:none;}
+.write-section.show{display:block;}
+.write-textarea{width:100%;min-height:130px;background:rgba(2,8,24,.55);border:1px solid var(--border);border-radius:12px;padding:1rem 1.2rem;color:var(--white);font-family:'Exo 2',sans-serif;font-size:.96rem;line-height:1.7;outline:none;resize:vertical;transition:border .25s;}
+.write-textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,255,.1);}
+.write-textarea::placeholder{color:rgba(122,144,192,.45);}
+.char-count{text-align:right;font-size:.75rem;color:var(--muted);margin-top:.4rem;}
+.action-row{display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center;margin-top:1.5rem;}
+.btn-retry{background:rgba(240,180,41,.1);border:1px solid rgba(240,180,41,.35);color:var(--gold);font-family:'Orbitron',sans-serif;font-weight:600;font-size:.8rem;letter-spacing:1.5px;padding:.75rem 1.8rem;border-radius:30px;cursor:pointer;transition:all .3s;text-transform:uppercase;display:none;align-items:center;gap:.5rem;}
+.btn-retry:hover{background:rgba(240,180,41,.2);transform:translateY(-2px);}
+.btn-retry.show{display:inline-flex;}
+.btn-analyze{background:linear-gradient(135deg,var(--bright-blue),var(--cyan));color:var(--deep-navy);font-family:'Orbitron',sans-serif;font-weight:700;font-size:.82rem;letter-spacing:1.5px;padding:.75rem 2rem;border-radius:30px;border:none;cursor:pointer;transition:all .3s;text-transform:uppercase;}
+.btn-analyze:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,212,255,.3);}
+.btn-analyze:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
+.analysis-result{display:none;}
+.analysis-result.show{display:block;}
+.result-item{background:rgba(2,8,24,.5);border-left:3px solid var(--cyan);border-radius:0 10px 10px 0;padding:1rem 1.2rem;margin-bottom:.8rem;}
+.result-item.err-item{border-left-color:var(--red);}
+.result-item.fix-item{border-left-color:var(--green);}
+.result-item.enh-item{border-left-color:var(--gold);}
+.result-label{font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem;}
+.result-text{font-size:.92rem;color:var(--white);line-height:1.6;}
+.movie-match{display:flex;align-items:center;gap:1.5rem;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.22);border-radius:14px;padding:1.2rem 1.5rem;margin-top:1rem;flex-wrap:wrap;}
+.movie-thumb{width:60px;height:80px;background:linear-gradient(135deg,var(--accent-blue),var(--bright-blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;}
+.movie-info h4{font-family:'Orbitron',sans-serif;font-size:.95rem;margin-bottom:.3rem;}
+.movie-info p{color:var(--muted);font-size:.82rem;}
+.match-badge{margin-left:auto;background:rgba(77,255,145,.12);color:var(--green);border:1px solid rgba(77,255,145,.3);border-radius:20px;padding:.3rem .9rem;font-size:.75rem;letter-spacing:1px;font-weight:600;text-transform:uppercase;}
+.fluency-row{display:flex;align-items:center;gap:1rem;margin-top:.6rem;}
+.fluency-bar{flex:1;height:8px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;}
+.fluency-fill{height:100%;background:linear-gradient(90deg,var(--bright-blue),var(--cyan));border-radius:4px;transition:width 1.2s ease;width:0%;}
+.spinner{display:none;text-align:center;padding:1.5rem;}
+.spinner.show{display:block;}
+.spinner-ring{width:42px;height:42px;border:3px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin .9s linear infinite;margin:0 auto .8rem;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.notice-box{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-radius:10px;padding:.75rem 1rem;font-size:.8rem;color:var(--muted);margin-top:1rem;line-height:1.6;}
+.notice-box span{color:var(--cyan);}
+
+/* AUTH */
+.auth-container{min-height:calc(100vh - 64px);display:flex;align-items:center;justify-content:center;padding:3rem 1.5rem;}
+.auth-box{width:100%;max-width:430px;background:rgba(7,21,64,.85);border:1px solid var(--border);border-radius:24px;padding:2.8rem 2.5rem;backdrop-filter:blur(20px);position:relative;overflow:hidden;}
+.auth-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--bright-blue),var(--cyan),var(--gold));}
+.auth-logo{font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:800;color:var(--cyan);text-align:center;margin-bottom:.5rem;letter-spacing:2px;text-shadow:0 0 20px rgba(0,212,255,.4);}
+.auth-logo span{color:var(--gold);}
+.auth-subtitle{text-align:center;color:var(--muted);font-size:.88rem;margin-bottom:2rem;}
+.auth-tabs{display:flex;background:rgba(2,8,24,.5);border-radius:30px;padding:4px;margin-bottom:2rem;border:1px solid var(--border);}
+.auth-tab{flex:1;padding:.55rem;border-radius:26px;border:none;background:transparent;color:var(--muted);font-family:'Exo 2',sans-serif;font-weight:600;font-size:.85rem;cursor:pointer;transition:all .25s;}
+.auth-tab.active{background:linear-gradient(135deg,var(--bright-blue),var(--cyan));color:var(--deep-navy);}
+.form-group{margin-bottom:1.2rem;}
+.form-group label{display:block;font-size:.78rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;}
+.form-group input{width:100%;background:rgba(2,8,24,.6);border:1px solid var(--border);border-radius:10px;padding:.8rem 1.1rem;color:var(--white);font-family:'Exo 2',sans-serif;font-size:.95rem;outline:none;transition:all .25s;}
+.form-group input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,255,.12);}
+.form-group input::placeholder{color:rgba(122,144,192,.45);}
+.form-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;}
+.form-row label{font-size:.82rem;color:var(--muted);display:flex;align-items:center;gap:.4rem;cursor:pointer;}
+.form-row a{font-size:.82rem;color:var(--cyan);text-decoration:none;cursor:pointer;}
+.btn-auth{width:100%;background:linear-gradient(135deg,var(--bright-blue),var(--cyan));color:var(--deep-navy);font-family:'Orbitron',sans-serif;font-weight:700;font-size:.88rem;letter-spacing:2px;padding:.9rem;border-radius:30px;border:none;cursor:pointer;transition:all .3s;text-transform:uppercase;}
+.btn-auth:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,212,255,.35);}
+.divider{display:flex;align-items:center;gap:1rem;margin:1.4rem 0;color:var(--muted);font-size:.8rem;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.btn-google{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:.75rem;color:var(--white);font-size:.88rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:.75rem;font-family:'Exo 2',sans-serif;font-weight:500;}
+.btn-google:hover{border-color:var(--cyan);background:rgba(0,212,255,.07);}
+.google-icon{width:20px;height:20px;flex-shrink:0;}
+.signup-fields{display:none;}
+.signin-fields{display:block;}
+.error-msg{background:rgba(255,96,96,.1);border:1px solid rgba(255,96,96,.3);border-radius:10px;padding:.8rem 1rem;color:var(--red);font-size:.85rem;margin-bottom:1rem;display:none;}
+.error-msg.show{display:block;}
+.success-msg{background:rgba(77,255,145,.08);border:1px solid rgba(77,255,145,.25);border-radius:10px;padding:.8rem 1rem;color:var(--green);font-size:.85rem;margin-bottom:1rem;display:none;text-align:center;}
+.success-msg.show{display:block;}
+
+footer{position:relative;z-index:1;background:rgba(2,8,24,.9);border-top:1px solid var(--border);padding:1.8rem;text-align:center;color:var(--muted);font-size:.82rem;}
+footer strong{color:var(--cyan);}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:640px){nav{padding:0 1rem;}.nav-links a{padding:.35rem .55rem;font-size:.72rem;}.auth-box{padding:2rem 1.4rem;}.step{flex-direction:column;gap:.75rem;}.stats-strip{gap:2rem;}.movie-match{flex-direction:column;align-items:flex-start;}.match-badge{margin-left:0;}}
+</style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>
+
+<!-- NAV — no About -->
+<nav>
+  <div class="nav-brand" onclick="showPage('home')">CINE<span>SPEAK</span> AI</div>
+  <ul class="nav-links">
+    <li><a onclick="showPage('home')" id="nav-home" class="active">Home</a></li>
+    <li><a onclick="showPage('features')" id="nav-features">Features</a></li>
+    <li><a onclick="showPage('demo')" id="nav-demo">Demo</a></li>
+    <li><a onclick="showPage('signin')" id="nav-signin" class="nav-cta">Sign In</a></li>
+  </ul>
+</nav>
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+  <section class="hero">
+    <div class="hero-badge">🎬 AI-Powered English Enhancement</div>
+    <h1>Describe Movies.<br>Master <span class="hl">English.</span></h1>
+    <p>Watch films in any language — Tamil, Hindi, Telugu, or global cinema — then describe them in English. Our AI corrects grammar, enriches vocabulary, and identifies the exact movie you're talking about.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="showPage('demo')">Try Live Demo</button>
+      <button class="btn-secondary" onclick="showPage('features')">Explore Features</button>
+    </div>
+  </section>
+  <div class="stats-strip">
+    <div class="stat"><div class="stat-num">50K+</div><div class="stat-label">Movies in DB</div></div>
+    <div class="stat"><div class="stat-num">98%</div><div class="stat-label">Recognition Accuracy</div></div>
+    <div class="stat"><div class="stat-num">12+</div><div class="stat-label">Languages Supported</div></div>
+    <div class="stat"><div class="stat-num">25K+</div><div class="stat-label">Active Learners</div></div>
+  </div>
+  <section class="section">
+    <div class="section-header"><div class="eyebrow">How it works</div><h2>Three Steps to Fluency</h2><p>Voice or Text → AI Analysis → Enhanced English</p></div>
+    <div class="steps">
+      <div class="step"><div class="step-num">01</div><div class="step-body"><h3>Speak or Type Your Description</h3><p>Watch any movie in any language. Use the mic to speak in English or type your description — then let the AI do its work.</p></div></div>
+      <div class="step"><div class="step-num">02</div><div class="step-body"><h3>AI Analyzes & Identifies</h3><p>NLP detects grammar errors, vocabulary issues, and fluency problems. The system simultaneously identifies the film from your description.</p></div></div>
+      <div class="step"><div class="step-num">03</div><div class="step-body"><h3>Get Corrected English + Retry</h3><p>Receive corrections with improved structure and richer vocabulary. Use the Retry button to try again and see how much you've improved.</p></div></div>
+    </div>
+  </section>
+  <footer>&copy; 2025 <strong>CineSpeak AI</strong> · Empowering English through Cinema</footer>
+</div>
+
+<!-- FEATURES -->
+<div id="page-features" class="page">
+  <section class="section" style="padding-top:3rem">
+    <div class="section-header"><div class="eyebrow">Platform Capabilities</div><h2>Everything You Need</h2><p>A complete AI ecosystem for movie-powered English learning.</p></div>
+    <div class="cards-grid">
+      <div class="card"><span class="card-icon">🎙️</span><h3>Voice Recognition</h3><p>Advanced speech-to-text converts your spoken English into accurate text in real time. Your actual words — not default text — are captured and analyzed.</p></div>
+      <div class="card"><span class="card-icon">✍️</span><h3>Text Input Mode</h3><p>Prefer typing? Switch to Write mode and type your movie description directly. The same full AI analysis applies to both voice and written input.</p></div>
+      <div class="card"><span class="card-icon">🔄</span><h3>Retry & Improve</h3><p>After each analysis, use the Retry button to re-describe the movie with corrections in mind. Compare your fluency score and watch yourself improve.</p></div>
+      <div class="card"><span class="card-icon">🧠</span><h3>NLP Grammar Engine</h3><p>Deep NLP detects grammar errors, sentence structure issues, incorrect tense usage, and subject-verb disagreements instantly.</p></div>
+      <div class="card"><span class="card-icon">📖</span><h3>Vocabulary Enhancement</h3><p>Replaces weak or repeated words with contextually appropriate synonyms, idioms, and cinematic vocabulary to elevate your expression.</p></div>
+      <div class="card"><span class="card-icon">🎬</span><h3>Movie Identification</h3><p>Intelligent semantic matching identifies the movie from your description — even partial ones — across a database of 50,000+ titles worldwide.</p></div>
+      <div class="card"><span class="card-icon">💬</span><h3>Fluency Scoring</h3><p>Get a real-time fluency score assessing coherence, clarity, vocabulary range, and grammatical accuracy with personalized tips.</p></div>
+      <div class="card"><span class="card-icon">🌐</span><h3>Multi-Language Movies</h3><p>Supports movie context from Tamil, Hindi, Telugu, Malayalam, Kannada, English, Korean, Spanish, and more world cinema.</p></div>
+      <div class="card"><span class="card-icon">🔍</span><h3>Smart Web Search</h3><p>When a movie isn't in the local database, the system searches and validates movie details from trusted online sources automatically.</p></div>
+    </div>
+  </section>
+  <footer>&copy; 2025 <strong>CineSpeak AI</strong> · Empowering English through Cinema</footer>
+</div>
+
+<!-- DEMO -->
+<div id="page-demo" class="page">
+  <div class="demo-layout">
+    <h2 class="demo-title">Live Demo</h2>
+    <p class="demo-desc">Choose Voice or Write mode, describe a movie in English, then hit Analyze.</p>
+
+    <!-- Mode toggle -->
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tab-voice" onclick="setMode('voice')">🎤 Voice</button>
+      <button class="mode-tab" id="tab-write" onclick="setMode('write')">✍️ Write</button>
+    </div>
+
+    <!-- Input panel -->
+    <div class="demo-panel">
+      <h3 id="input-panel-title">🎤 Voice Input</h3>
+
+      <!-- VOICE -->
+      <div class="voice-section" id="voice-section">
+        <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="Start / Stop Recording">🎤</button>
+        <p class="mic-status" id="mic-status">Click the mic to start speaking</p>
+        <div class="interim-box" id="interim-box">Listening…</div>
+        <div class="transcript-output empty" id="transcript-output">Your speech will appear here in real time…</div>
+        <div class="notice-box">
+          <span>ℹ️ Mic required.</span> Allow microphone access when your browser prompts. Works best in Chrome / Edge. Your actual spoken words are captured — no preset text is used.
+        </div>
+      </div>
+
+      <!-- WRITE -->
+      <div class="write-section" id="write-section">
+        <textarea class="write-textarea" id="write-input"
+          placeholder="Type your movie description here in English…&#10;e.g. 'The story follows a undercover cop who is trying to stop some bad peoples from smuggling drugs in Chennai…'"
+          oninput="updateCharCount()"></textarea>
+        <div class="char-count"><span id="char-count">0</span> characters</div>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="action-row">
+      <button class="btn-retry" id="btn-retry" onclick="retryInput()">↺ &nbsp;Retry</button>
+      <button class="btn-analyze" id="btn-analyze" onclick="runAnalysis()">✨ Analyze with AI</button>
+    </div>
+
+    <!-- Spinner -->
+    <div class="spinner" id="spinner">
+      <div class="spinner-ring"></div>
+      <p style="color:var(--muted);font-size:.85rem;">Analyzing your description…</p>
+    </div>
+
+    <!-- Results -->
+    <div class="demo-panel analysis-result" id="analysis-panel" style="margin-top:1.5rem;">
+      <h3>🧠 AI Analysis Results</h3>
+      <div id="results-content"></div>
+    </div>
+  </div>
+  <footer>&copy; 2025 <strong>CineSpeak AI</strong> · Empowering English through Cinema</footer>
+</div>
+
+<!-- SIGN IN -->
+<div id="page-signin" class="page">
+  <div class="auth-container">
+    <div class="auth-box">
+      <div class="auth-logo">CINE<span>SPEAK</span> AI</div>
+      <p class="auth-subtitle">Your cinema-powered English journey</p>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-signin" onclick="switchTab('signin')">Sign In</button>
+        <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+      <div class="error-msg" id="auth-error"></div>
+      <div class="success-msg" id="auth-success"></div>
+
+      <!-- SIGN IN -->
+      <div class="signin-fields" id="signin-fields">
+        <div class="form-group"><label>Email Address</label><input type="email" id="si-email" placeholder="you@example.com"/></div>
+        <div class="form-group"><label>Password</label><input type="password" id="si-pass" placeholder="Enter your password"/></div>
+        <div class="form-row">
+          <label><input type="checkbox" style="accent-color:var(--cyan);"/> Remember me</label>
+          <a onclick="showForgot()">Forgot password?</a>
+        </div>
+        <button class="btn-auth" onclick="handleSignIn()">Sign In</button>
+        <div class="divider">or</div>
+        <button class="btn-google" onclick="handleGoogle()">
+          <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Continue with Google
+        </button>
+        <div class="notice-box" style="margin-top:1rem;"><span>ℹ️ Demo:</span> Google OAuth needs a backend setup. Use email/password or just click Sign In to enter the demo.</div>
+      </div>
+
+      <!-- SIGN UP -->
+      <div class="signup-fields" id="signup-fields">
+        <div class="form-group"><label>Full Name</label><input type="text" id="su-name" placeholder="Your full name"/></div>
+        <div class="form-group"><label>Email Address</label><input type="email" id="su-email" placeholder="you@example.com"/></div>
+        <div class="form-group"><label>Password</label><input type="password" id="su-pass" placeholder="Min. 8 characters"/></div>
+        <div class="form-group"><label>Confirm Password</label><input type="password" id="su-confirm" placeholder="Repeat your password"/></div>
+        <div style="margin-bottom:1.5rem;">
+          <label style="font-size:.82rem;color:var(--muted);display:flex;align-items:flex-start;gap:.5rem;cursor:pointer;line-height:1.5;">
+            <input type="checkbox" id="su-agree" style="accent-color:var(--cyan);margin-top:2px;"/>
+            I agree to the <span style="color:var(--cyan);">Terms of Service</span> &amp; <span style="color:var(--cyan);">Privacy Policy</span>
+          </label>
+        </div>
+        <button class="btn-auth" onclick="handleSignUp()">Create Account</button>
+        <div class="divider">or</div>
+        <button class="btn-google" onclick="handleGoogle()">
+          <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Sign Up with Google
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* STARS */
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let stars=[];
+function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+function initStars(){stars=[];const n=Math.floor(canvas.width*canvas.height/5500);for(let i=0;i<n;i++)stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.6+.2,speed:Math.random()*.25+.04,opacity:Math.random()*.7+.1,twSpeed:Math.random()*.02+.005,twPhase:Math.random()*Math.PI*2,drift:(Math.random()-.5)*.12});}
+function drawStars(){ctx.clearRect(0,0,canvas.width,canvas.height);stars.forEach(s=>{s.twPhase+=s.twSpeed;const a=s.opacity*(.6+.4*Math.sin(s.twPhase));s.y-=s.speed;s.x+=s.drift;if(s.y<-5){s.y=canvas.height+5;s.x=Math.random()*canvas.width;}if(s.x<-5)s.x=canvas.width+5;if(s.x>canvas.width+5)s.x=-5;const g=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r*4);g.addColorStop(0,`rgba(180,210,255,${a})`);g.addColorStop(1,'transparent');ctx.beginPath();ctx.arc(s.x,s.y,s.r*4,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(220,235,255,${Math.min(a*1.5,1)})`;ctx.fill();});requestAnimationFrame(drawStars);}
+window.addEventListener('resize',()=>{resizeCanvas();initStars();});resizeCanvas();initStars();requestAnimationFrame(drawStars);
+
+/* NAV */
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const n=document.getElementById('nav-'+id);if(n)n.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(id==='demo')resetDemo();
+}
+
+/* AUTH */
+function switchTab(t){
+  const s=t==='signin';
+  document.getElementById('tab-signin').classList.toggle('active',s);
+  document.getElementById('tab-signup').classList.toggle('active',!s);
+  document.getElementById('signin-fields').style.display=s?'block':'none';
+  document.getElementById('signup-fields').style.display=s?'none':'block';
+  clearAuthMsgs();
+}
+function clearAuthMsgs(){document.getElementById('auth-error').classList.remove('show');document.getElementById('auth-success').classList.remove('show');}
+function showAuthError(m){const e=document.getElementById('auth-error');e.textContent=m;e.classList.add('show');document.getElementById('auth-success').classList.remove('show');}
+function showAuthSuccess(m){const e=document.getElementById('auth-success');e.textContent=m;e.classList.add('show');document.getElementById('auth-error').classList.remove('show');}
+
+function handleSignIn(){
+  const email=document.getElementById('si-email').value.trim();
+  const pass=document.getElementById('si-pass').value;
+  if(!email){showAuthError('Please enter your email address.');return;}
+  if(!email.includes('@')){showAuthError('Please enter a valid email address.');return;}
+  if(!pass){showAuthError('Please enter your password.');return;}
+  showAuthSuccess('✓ Signed in successfully! Redirecting…');
+  setTimeout(()=>showPage('demo'),1200);
+}
+function handleSignUp(){
+  const name=document.getElementById('su-name').value.trim();
+  const email=document.getElementById('su-email').value.trim();
+  const pass=document.getElementById('su-pass').value;
+  const confirm=document.getElementById('su-confirm').value;
+  const agreed=document.getElementById('su-agree').checked;
+  if(!name){showAuthError('Please enter your full name.');return;}
+  if(!email||!email.includes('@')){showAuthError('Please enter a valid email address.');return;}
+  if(pass.length<8){showAuthError('Password must be at least 8 characters.');return;}
+  if(pass!==confirm){showAuthError('Passwords do not match.');return;}
+  if(!agreed){showAuthError('Please agree to the Terms of Service to continue.');return;}
+  showAuthSuccess('✓ Account created! Welcome to CineSpeak AI!');
+  setTimeout(()=>showPage('demo'),1400);
+}
+function handleGoogle(){showAuthError('Google Sign-In requires OAuth backend integration. Please use email/password for this demo.');}
+function showForgot(){const e=document.getElementById('si-email').value.trim();if(e)showAuthSuccess('Password reset link sent to '+e+' (demo).');else showAuthError('Enter your email above first, then click Forgot Password.');}
+
+/* DEMO STATE */
+let currentMode='voice',transcriptText='',recognition=null,isRecording=false;
+
+function setMode(mode){
+  currentMode=mode;
+  document.getElementById('tab-voice').classList.toggle('active',mode==='voice');
+  document.getElementById('tab-write').classList.toggle('active',mode==='write');
+  document.getElementById('voice-section').style.display=mode==='voice'?'flex':'none';
+  if(mode==='voice')document.getElementById('voice-section').style.flexDirection='column';
+  document.getElementById('write-section').classList.toggle('show',mode==='write');
+  document.getElementById('input-panel-title').textContent=mode==='voice'?'🎤 Voice Input':'✍️ Write Your Description';
+  resetResults();
+}
+
+function resetDemo(){
+  stopRecording();
+  transcriptText='';
+  const out=document.getElementById('transcript-output');
+  out.textContent='Your speech will appear here in real time…';out.classList.add('empty');
+  document.getElementById('interim-box').classList.remove('show');
+  document.getElementById('mic-status').textContent='Click the mic to start speaking';
+  document.getElementById('mic-btn').textContent='🎤';
+  document.getElementById('write-input').value='';
+  document.getElementById('char-count').textContent='0';
+  resetResults();
+  setMode('voice');
+}
+function resetResults(){
+  document.getElementById('analysis-panel').classList.remove('show');
+  document.getElementById('results-content').innerHTML='';
+  document.getElementById('spinner').classList.remove('show');
+  document.getElementById('btn-retry').classList.remove('show');
+  document.getElementById('btn-analyze').disabled=false;
+}
+function updateCharCount(){document.getElementById('char-count').textContent=document.getElementById('write-input').value.length;}
+
+/* VOICE */
+function toggleMic(){if(isRecording)stopRecording();else startRecording();}
+
+function startRecording(){
+  const SRC=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SRC){
+    document.getElementById('mic-status').textContent='⚠️ Speech recognition not supported. Use Chrome/Edge, or switch to Write mode.';
+    return;
+  }
+  // Clear previous transcript
+  transcriptText='';
+  const out=document.getElementById('transcript-output');
+  out.textContent='';out.classList.remove('empty');
+  const interimBox=document.getElementById('interim-box');
+  resetResults();
+
+  recognition=new SRC();
+  recognition.continuous=true;
+  recognition.interimResults=true;
+  recognition.lang='en-US';
+  recognition.maxAlternatives=1;
+
+  recognition.onstart=()=>{
+    isRecording=true;
+    document.getElementById('mic-btn').classList.add('recording');
+    document.getElementById('mic-btn').textContent='⏹';
+    document.getElementById('mic-status').textContent='🔴 Recording… speak now. Click ⏹ to stop.';
+    interimBox.classList.add('show');
+    interimBox.textContent='Waiting for speech…';
+  };
+
+  recognition.onresult=(e)=>{
+    let interim='',final='';
+    for(let i=0;i<e.results.length;i++){
+      if(e.results[i].isFinal)final+=e.results[i][0].transcript+' ';
+      else interim+=e.results[i][0].transcript;
+    }
+    if(final.trim()){
+      transcriptText=final.trim();
+      out.textContent=transcriptText;
+      out.classList.remove('empty');
+    }
+    interimBox.textContent=interim||'…';
+  };
+
+  recognition.onerror=(e)=>{
+    stopRecording();
+    const msgs={
+      'not-allowed':'⚠️ Microphone access denied. Allow mic permission in your browser settings.',
+      'no-speech':'No speech detected. Please try again.',
+      'audio-capture':'No microphone found. Please connect a mic.',
+      'network':'Network error during recognition. Check your connection.'
+    };
+    document.getElementById('mic-status').textContent=msgs[e.error]||('Error: '+e.error+'. Please try again.');
+  };
+
+  recognition.onend=()=>{ stopRecording(); };
+  try{ recognition.start(); } catch(e){ document.getElementById('mic-status').textContent='Could not start mic: '+e.message; }
+}
+
+function stopRecording(){
+  isRecording=false;
+  if(recognition){try{recognition.stop();}catch(e){}recognition=null;}
+  const btn=document.getElementById('mic-btn');
+  btn.classList.remove('recording');btn.textContent='🎤';
+  const hasSpeech=transcriptText.trim().length>0;
+  document.getElementById('mic-status').textContent=hasSpeech
+    ?'✅ Done! Your description is captured. Click Analyze to proceed.'
+    :'Click the mic to start speaking';
+  document.getElementById('interim-box').classList.remove('show');
+}
+
+/* ANALYSIS */
+function getInputText(){
+  return currentMode==='voice'?transcriptText.trim():document.getElementById('write-input').value.trim();
+}
+
+function runAnalysis(){
+  const text=getInputText();
+  if(!text){
+    if(currentMode==='voice'){
+      document.getElementById('mic-status').textContent='⚠️ Please record your voice description first, then click Analyze.';
+    } else {
+      const ta=document.getElementById('write-input');
+      ta.style.borderColor='var(--red)';
+      ta.focus();
+      setTimeout(()=>ta.style.borderColor='',2000);
+    }
+    return;
+  }
+  document.getElementById('write-input').style.borderColor='';
+  resetResults();
+  document.getElementById('spinner').classList.add('show');
+  document.getElementById('btn-analyze').disabled=true;
+  setTimeout(()=>{
+    document.getElementById('spinner').classList.remove('show');
+    document.getElementById('btn-analyze').disabled=false;
+    renderResults(text);
+  },1600);
+}
+
+function renderResults(inputText){
+  const rules=[
+    {re:/\bare\b(?=\s+(very\s+)?brave)/gi,fix:'is',msg:'Subject-verb agreement: use "is" (singular hero), not "are"'},
+    {re:/\bfighted\b/gi,fix:'fought',msg:'"fighted" is incorrect — past tense of "fight" is "fought"'},
+    {re:/\ba(?=\s+undercover)/gi,fix:'an',msg:'Use "an" before vowel sounds: "an undercover"'},
+    {re:/\bbad peoples\b/gi,fix:'bad people',msg:'"peoples" → "people" (uncountable noun, no plural -s)'},
+    {re:/\bpeoples\b/gi,fix:'people',msg:'"peoples" → "people"'},
+    {re:/\bhe go\b/gi,fix:'he goes',msg:'Subject-verb agreement: "he goes" not "he go"'},
+    {re:/\bshe go\b/gi,fix:'she goes',msg:'Subject-verb agreement: "she goes" not "she go"'},
+    {re:/\bthey was\b/gi,fix:'they were',msg:'"was" → "were" with plural subject "they"'},
+    {re:/\bhe don'?t\b/gi,fix:"he doesn't",msg:'"don\'t" → "doesn\'t" for third-person singular'},
+    {re:/\bmore better\b/gi,fix:'better',msg:'Double comparative — remove "more"; just "better"'},
+    {re:/\bvery unique\b/gi,fix:'unique',msg:'"unique" means one-of-a-kind; it needs no intensifier'},
+    {re:/\bhe are\b/gi,fix:'he is',msg:'"he are" → "he is"'},
+    {re:/\bshe are\b/gi,fix:'she is',msg:'"she are" → "she is"'},
+    {re:/\bI is\b/gi,fix:'I am',msg:'"I is" → "I am"'},
+    {re:/\bwas go\b/gi,fix:'went',msg:'"was go" → "went"'},
+    {re:/\bcan able\b/gi,fix:'can',msg:'"can able" — use either "can" or "is able to", not both'},
+    {re:/\bdid went\b/gi,fix:'went',msg:'"did went" → "went"'},
+    {re:/\bmore faster\b/gi,fix:'faster',msg:'Double comparative: just "faster"'},
+    {re:/\bvery much big\b/gi,fix:'very big',msg:'Rephrase to "very big"'},
+  ];
+
+  let corrected=inputText;
+  let errorsFound=[];
+  rules.forEach(r=>{
+    r.re.lastIndex=0;
+    if(r.re.test(corrected)){
+      r.re.lastIndex=0;
+      const match=corrected.match(r.re);
+      if(match) errorsFound.push({msg:r.msg,orig:match[0],fix:r.fix});
+      r.re.lastIndex=0;
+      corrected=corrected.replace(r.re,r.fix);
+    }
+  });
+
+  // Vocab enhancement
+  const enhanced=corrected
+    .replace(/\bvery brave\b/gi,'exceptionally courageous')
+    .replace(/\bbrave\b/gi,'valiant')
+    .replace(/\bvillain(s)?\b/gi,'antagonist$1')
+    .replace(/\bhero\b/gi,'protagonist')
+    .replace(/\bstory\b/gi,'narrative')
+    .replace(/\bfight\b/gi,'confrontation')
+    .replace(/\btrying to stop\b/gi,'endeavouring to prevent')
+    .replace(/\bvery good\b/gi,'exceptional')
+    .replace(/\bvery sad\b/gi,'profoundly melancholic')
+    .replace(/\bvery funny\b/gi,'hilariously entertaining')
+    .replace(/\bgood movie\b/gi,'compelling film')
+    .replace(/\bold movie\b/gi,'classic film')
+    .replace(/\bbig fight\b/gi,'climactic confrontation')
+    .replace(/\bbad guy(s)?\b/gi,'antagonist$1')
+    .replace(/\bkill(ed)?\b/gi,'eliminate$1')
+    .replace(/\brun away\b/gi,'flee the scene');
+
+  const movie=detectMovie(inputText);
+  const wc=inputText.split(/\s+/).filter(Boolean).length;
+  const penalty=errorsFound.length*7;
+  const bonus=Math.min(wc*1.5,35);
+  const score=Math.min(Math.max(Math.round(60+bonus-penalty),25),98);
+
+  let html='';
+  if(errorsFound.length===0){
+    html+=`<div class="result-item fix-item"><div class="result-label">Grammar Check</div><div class="result-text" style="color:var(--green);">✓ No major grammar errors detected. Great job!</div></div>`;
+  } else {
+    errorsFound.forEach(e=>{
+      html+=`<div class="result-item err-item"><div class="result-label">⚠ Grammar Issue</div><div class="result-text">${escH(e.msg)}</div></div>`;
+    });
+    html+=`<div class="result-item fix-item"><div class="result-label">✓ Corrected Version</div><div class="result-text" style="color:var(--green);">${escH(corrected)}</div></div>`;
+  }
+
+  html+=`<div class="result-item enh-item"><div class="result-label">✨ Enhanced Version (improved vocabulary)</div><div class="result-text" style="color:var(--gold);">${escH(enhanced)}</div></div>`;
+
+  html+=`<h3 style="margin-top:1.5rem;">🎬 Movie Match</h3>
+  <div class="movie-match">
+    <div class="movie-thumb">🎞️</div>
+    <div class="movie-info">
+      <h4>${movie.title}</h4>
+      <p>${movie.genre} · ${movie.lang} · ${movie.dir}</p>
+      <p style="color:var(--muted);font-size:.78rem;margin-top:.3rem;">Confidence: ${movie.conf}%</p>
+    </div>
+    <div class="match-badge">✓ ${movie.conf>=80?'Matched':'Possible'}</div>
+  </div>`;
+
+  html+=`<div style="margin-top:1.5rem;padding:1.2rem;background:rgba(0,212,255,.05);border-radius:12px;border:1px solid rgba(0,212,255,.15);">
+    <div class="result-label">Fluency Score</div>
+    <div class="fluency-row">
+      <div class="fluency-bar"><div class="fluency-fill" id="fluency-fill"></div></div>
+      <span style="font-family:'Orbitron',sans-serif;color:var(--cyan);font-weight:700;">${score}/100</span>
+    </div>
+    <p style="color:var(--muted);font-size:.8rem;margin-top:.6rem;">${getTip(score)}</p>
+  </div>`;
+
+  document.getElementById('results-content').innerHTML=html;
+  document.getElementById('analysis-panel').classList.add('show');
+  document.getElementById('btn-retry').classList.add('show');
+  setTimeout(()=>{
+    const f=document.getElementById('fluency-fill');if(f)f.style.width=score+'%';
+    document.getElementById('analysis-panel').scrollIntoView({behavior:'smooth',block:'start'});
+  },80);
+}
+
+function detectMovie(text){
+  const t=text.toLowerCase();
+  const db=[
+    {kw:['vikram','undercover','cop','drugs','chennai','lokesh'],title:'Vikram (2022)',genre:'Action',lang:'Tamil',dir:'Dir. Lokesh Kanagaraj',conf:94},
+    {kw:['kgf','gold','mine','rocky','yash'],title:'KGF: Chapter 2 (2022)',genre:'Action Drama',lang:'Kannada',dir:'Dir. Prashanth Neel',conf:91},
+    {kw:['baahubali','kingdom','prince','war','prabhas'],title:'Baahubali (2015)',genre:'Epic Action',lang:'Telugu',dir:'Dir. S.S. Rajamouli',conf:90},
+    {kw:['pushpa','smuggling','forest','flower','allu'],title:'Pushpa: The Rise (2021)',genre:'Action',lang:'Telugu',dir:'Dir. Sukumar',conf:88},
+    {kw:['master','teacher','college','villain','youth','thalapathy'],title:'Master (2021)',genre:'Action Thriller',lang:'Tamil',dir:'Dir. Lokesh Kanagaraj',conf:86},
+    {kw:['3 idiots','engineer','college','friends','exam'],title:'3 Idiots (2009)',genre:'Comedy Drama',lang:'Hindi',dir:'Dir. Rajkumar Hirani',conf:89},
+    {kw:['dangal','wrestling','daughter','father'],title:'Dangal (2016)',genre:'Sports Drama',lang:'Hindi',dir:'Dir. Nitesh Tiwari',conf:87},
+    {kw:['robot','android','machine','sci-fi','rajini'],title:'Enthiran / Robot (2010)',genre:'Sci-Fi Action',lang:'Tamil',dir:'Dir. Shankar',conf:85},
+    {kw:['love','romance','couple','relationship','girl','boy'],title:'OK Kanmani (2015)',genre:'Romance',lang:'Tamil',dir:'Dir. Mani Ratnam',conf:70},
+    {kw:['kaithi','prison','escape','dark','night'],title:'Kaithi (2019)',genre:'Action Thriller',lang:'Tamil',dir:'Dir. Lokesh Kanagaraj',conf:82},
+    {kw:['jailer','officer','retired','son','family'],title:'Jailer (2023)',genre:'Action',lang:'Tamil',dir:'Dir. Nelson Dilipkumar',conf:83},
+    {kw:['leo','spy','gangster','krishna','past'],title:'Leo (2023)',genre:'Action Thriller',lang:'Tamil',dir:'Dir. Lokesh Kanagaraj',conf:84},
+  ];
+  let best=null,bestScore=0;
+  db.forEach(m=>{let s=0;m.kw.forEach(k=>{if(t.includes(k))s++;});if(s>bestScore){bestScore=s;best=m;}});
+  if(best&&bestScore>=2)return best;
+  return{title:'Movie Not Identified',genre:'Unknown',lang:'—',dir:'Add more plot / actor / location details',conf:0};
+}
+
+function getTip(s){
+  if(s>=88)return'Excellent fluency! Your English expression is impressive — try more complex sentence structures next time.';
+  if(s>=72)return'Good fluency! Focus on consistent tense usage and enriching your vocabulary further.';
+  if(s>=55)return'Fair fluency. Work on subject-verb agreement and sentence variety.';
+  return'Keep practicing! Focus on basic grammar — tenses, articles (a/an/the), and singular/plural forms.';
+}
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+/* RETRY — clears input, shows fresh panel ready to go again */
+function retryInput(){
+  transcriptText='';
+  const out=document.getElementById('transcript-output');
+  out.textContent='Your speech will appear here in real time…';out.classList.add('empty');
+  document.getElementById('mic-status').textContent='Ready! Click the mic and try your description again.';
+  document.getElementById('mic-btn').textContent='🎤';
+  document.getElementById('mic-btn').classList.remove('recording');
+  document.getElementById('interim-box').classList.remove('show');
+  document.getElementById('write-input').value='';
+  document.getElementById('char-count').textContent='0';
+  document.getElementById('analysis-panel').classList.remove('show');
+  document.getElementById('results-content').innerHTML='';
+  document.getElementById('btn-retry').classList.remove('show');
+  document.getElementById('btn-analyze').disabled=false;
+  document.querySelector('.demo-layout').scrollIntoView({behavior:'smooth',block:'start'});
+}
+</script>
+</body>
+</html>
